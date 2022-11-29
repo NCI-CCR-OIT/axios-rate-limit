@@ -25,6 +25,10 @@ AxiosRateLimit.prototype.setMaxRPS = function (rps) {
   })
 }
 
+AxiosRateLimit.prototype.getNumQueuedRequests = function () {
+  return this.queue.length
+}
+
 AxiosRateLimit.prototype.setRateLimitOptions = function (options) {
   if (options.maxRPS) {
     this.setMaxRPS(options.maxRPS)
@@ -128,6 +132,8 @@ function axiosRateLimit (axios, options) {
   axios.getMaxRPS = AxiosRateLimit.prototype.getMaxRPS.bind(rateLimitInstance)
   axios.setMaxRPS = AxiosRateLimit.prototype.setMaxRPS.bind(rateLimitInstance)
   axios.setRateLimitOptions = AxiosRateLimit.prototype.setRateLimitOptions
+    .bind(rateLimitInstance)
+  axios.getNumQueuedRequests = AxiosRateLimit.prototype.getNumQueuedRequests
     .bind(rateLimitInstance)
 
   return axios
