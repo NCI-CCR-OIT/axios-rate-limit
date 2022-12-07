@@ -30,6 +30,10 @@ AxiosRateLimit.prototype.getQueuedRequestCount = function () {
   return this.queue.length
 }
 
+AxiosRateLimit.prototype.getTimeslotRequestsCount = function () {
+  return this.timeslotRequests
+}
+
 AxiosRateLimit.prototype.getRequestsInFlightCount = function () {
   return this.requestsInFlight
 }
@@ -59,15 +63,14 @@ AxiosRateLimit.prototype.enable = function (axios) {
 }
 
 AxiosRateLimit.prototype.handleRequest = function (request) {
-  this.requestsInFlight++;
   return new Promise(function (resolve) {
     this.push({ resolve: function () { resolve(request) } })
   }.bind(this))
 }
 
 AxiosRateLimit.prototype.handleResponse = function (response) {
-  this.requestsInFlight--;
   this.shift()
+  this.requestsInFlight--
   return response
 }
 
@@ -105,6 +108,7 @@ AxiosRateLimit.prototype.shift = function () {
   }
 
   this.timeslotRequests += 1
+  this.requestsInFlight += 1
 }
 
 /**
@@ -142,8 +146,10 @@ function axiosRateLimit (axios, options) {
     .bind(rateLimitInstance)
   axios.getQueuedRequestCount = AxiosRateLimit.prototype.getQueuedRequestCount
     .bind(rateLimitInstance)
+  axios.getTimeslotRequestsCount = AxiosRateLimit.prototype.getTimeslotRequestsCount
+    .bind(rateLimitInstance);
   axios.getRequestsInFlightCount = AxiosRateLimit.prototype.getRequestsInFlightCount
-    .bind(rateLimitInstance)
+    .bind(rateLimitInstance);
 
   return axios
 }
