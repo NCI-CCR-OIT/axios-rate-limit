@@ -10,6 +10,7 @@ function AxiosRateLimit (axios) {
 
   this.handleRequest = this.handleRequest.bind(this)
   this.handleResponse = this.handleResponse.bind(this)
+	this.handleError = this.handleError.bind(this)
 
   this.enable(axios)
 }
@@ -48,17 +49,13 @@ AxiosRateLimit.prototype.setRateLimitOptions = function (options) {
 }
 
 AxiosRateLimit.prototype.enable = function (axios) {
-  function handleError (error) {
-    return Promise.reject(error)
-  }
-
   this.interceptors.request = axios.interceptors.request.use(
     this.handleRequest,
-    handleError
+    this.handleError
   )
   this.interceptors.response = axios.interceptors.response.use(
     this.handleResponse,
-    handleError
+    this.handleError
   )
 }
 
@@ -72,6 +69,11 @@ AxiosRateLimit.prototype.handleResponse = function (response) {
   this.shift()
   this.requestsInFlight--
   return response
+}
+
+AxiosRateLimit.prototype.handleError = function (error) {
+	this.requestsInFlight--
+	return Promise.reject(error)
 }
 
 AxiosRateLimit.prototype.push = function (requestHandler) {
@@ -147,9 +149,9 @@ function axiosRateLimit (axios, options) {
   axios.getQueuedRequestCount = AxiosRateLimit.prototype.getQueuedRequestCount
     .bind(rateLimitInstance)
   axios.getTimeslotRequestsCount = AxiosRateLimit.prototype.getTimeslotRequestsCount
-    .bind(rateLimitInstance);
+    .bind(rateLimitInstance)
   axios.getRequestsInFlightCount = AxiosRateLimit.prototype.getRequestsInFlightCount
-    .bind(rateLimitInstance);
+    .bind(rateLimitInstance)
 
   return axios
 }
